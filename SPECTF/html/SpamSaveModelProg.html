@@ -1,0 +1,543 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>SpamSaveModelProg</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-07-01"><meta name="DC.source" content="SpamSaveModelProg.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">% DEMONSTRATION PROGRAM FOR ILLUSTRATING THE EFFECT OF REGULARIZATION</span>
+<span class="comment">%</span>
+<span class="comment">% Written by Magnus Norgaard, IAU/IMM, Technical Univ. of Denmark</span>
+<span class="comment">% LastEditDate: Jan. 15, 2000.</span>
+
+close <span class="string">all</span>
+StopDemo=0;
+figure
+guihand=gcf;
+<span class="keyword">for</span> k=1:1, <span class="comment">%dummy loop</span>
+
+  <span class="comment">% &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;  BUILD GUI INTERFACE  &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>
+  [guihand,edmulti,contbut,quitbut]=pmnshow;
+  set(guihand,<span class="string">'Name'</span>,<span class="string">'Demonstration of regularization'</span>);
+
+  <span class="comment">% &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;  SCREEN 1  &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>
+  s0=<span class="string">'1'</span>;
+  s1=<span class="string">'In this demo it is shown how regularization by simple'</span>;
+  s2=<span class="string">'weight decay might be of help when dealing with'</span>;
+  s3=<span class="string">'overparametrization in neural networks.'</span>;
+  s4=[];
+  s5=<span class="string">'The problem, which will be the subject of our'</span>;
+  s6=<span class="string">'investigation, is to use a neural network for fitting'</span>;
+  s7=<span class="string">'the underlying sine wave from the points marked'</span>;
+  s8=<span class="string">'''training data.'''</span>;
+  smat=str2mat(s0,s1,s2,s3,s4,s5,s6,s7,s8);
+
+  <span class="comment">% ---------- Generate Data ----------</span>
+
+<span class="comment">%load('dataSetofSpam.mat')</span>
+load(<span class="string">'dataSetofSpam.mat'</span>);
+
+PHI1=trainData;
+Y1=trainlabel;
+PHI2=testData;
+
+Y2=testlabel;
+
+PHI1=PHI1';
+PHI2=PHI2';
+Y1=Y1';
+Y2=Y2';
+  <span class="comment">%----- Plot Data -----</span>
+  sub1=subplot(<span class="string">'position'</span>,[0.1 0.55 0.38 0.38]);
+  plot(PHI1,Y1,<span class="string">'+'</span>);
+  set(gca,<span class="string">'Xlim'</span>,[min(PHI1(:)) max(PHI1(:))]);
+  title(<span class="string">'Training data'</span>);
+  sub2=subplot(<span class="string">'position'</span>,[0.57 0.55 0.38 0.38]);
+  plot(PHI2,Y2,<span class="string">'m+'</span>)
+  set(gca,<span class="string">'Xlim'</span>,[min(PHI2(:)) max(PHI2(:))]);
+  title(<span class="string">'Test data'</span>);
+  drawnow
+
+<span class="comment">%  pmnshow(smat,guihand,edmulti,contbut,quitbut);</span>
+  <span class="keyword">if</span> StopDemo==1, close <span class="string">all</span>, <span class="keyword">break</span>; <span class="keyword">end</span>
+
+
+  <span class="comment">% &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;  SCREEN 2  &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>
+  s0=<span class="string">'2'</span>;
+  s1=<span class="string">'Let''s begin by training a network with 15'</span>;
+  s2=<span class="string">'hidden ''tanh'' units and one linear output unit'</span>;
+  s3=<span class="string">'without using regularization.'</span>;
+  smat=str2mat(s0,s1,s2,s3);
+  NetDef = [<span class="string">'HHHHHHHHHHHHHHHHHHHH'</span>
+            <span class="string">'L-------------------'</span>];
+  W1  = rand(20,45);             <span class="comment">% Weights to hidden layer</span>
+  W2  = rand(1,21);             <span class="comment">% Weights to output</span>
+  delete(sub1);
+  delete(sub2);
+  sub1=subplot(<span class="string">'position'</span>,[0.1 0.55 0.45 0.38]);
+  <span class="comment">%drawnet(W1,W2,eps,{'x'},{'y'});</span>
+  pmnshow(smat,guihand,edmulti,contbut,quitbut);
+  <span class="keyword">if</span> StopDemo==1, close <span class="string">all</span>, <span class="keyword">break</span>; <span class="keyword">end</span>
+
+
+  <span class="comment">% &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;  SCREEN 3  &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>
+  <span class="comment">% ----- Train network -----</span>
+  s0=<span class="string">'3'</span>;
+  s1=[];
+  s2=<span class="string">'    &gt;&gt; Training process in action!! &lt;&lt;'</span>;
+  s3=[];
+  s4=[];
+  s5=<span class="string">'We run up to 500 iterations so you may have to'</span>;
+  s6=<span class="string">'wait for a while!'</span>;
+  smat=str2mat(s0,s1,s2,s3,s4,s5,s6);
+  set(edmulti,<span class="string">'String'</span>,smat);
+  drawnow
+  trparms = settrain;
+  trparms = settrain(trparms,<span class="string">'maxiter'</span>,500);
+  [W1,W2,NSSEvec,iter,lambda2]=marq(NetDef,W1,W2,PHI1,Y1,trparms);
+  delete(gca);
+  subplot(<span class="string">'position'</span>,[0.1 0.55 0.45 0.38]);
+  semilogy(NSSEvec);
+  xlabel(<span class="string">'Iteration'</span>);
+  ylabel(<span class="string">'Criterion of fit'</span>);
+  grid
+
+
+  <span class="comment">% &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;  SCREEN 4  &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>
+  s0=<span class="string">'4'</span>;
+  s1=<span class="string">'Next we compute training error, test error,'</span>;
+  s2=<span class="string">'FPE estimate, and LOO estimate to get an idea'</span>;
+  s3=<span class="string">'of how well the network fits the curve.'</span>;
+  smat=str2mat(s0,s1,s2,s3);
+  pmnshow(smat,guihand,edmulti,contbut,quitbut);
+  <span class="keyword">if</span> StopDemo==1, close <span class="string">all</span>, <span class="keyword">break</span>; <span class="keyword">end</span>
+
+
+  <span class="comment">% &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;  SCREEN 5  &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>
+  [Yhat,E,NSSE_tr] = nneval(NetDef,W1,W2,PHI1,Y1,1);
+  [Yhat,E,NSSE_te] = nneval(NetDef,W1,W2,PHI2,Y2,1);
+  FPE = fpe(NetDef,W1,W2,PHI1,Y1,trparms);
+  trparms2 = settrain(trparms,<span class="string">'maxiter'</span>,0);
+  ELOO= loo(NetDef,W1,W2,PHI1,Y1,trparms2);
+  s0=<span class="string">'5'</span>;
+  s1=[<span class="string">'Training error:   '</span> num2str(NSSE_tr)];
+  s2=[<span class="string">'Test Error:         '</span> num2str(NSSE_te)];
+  s3=[<span class="string">'FPE estimate:   '</span> num2str(FPE)];
+  s4=[<span class="string">'LOO estimate:   '</span> num2str(ELOO)];
+  smat=str2mat(s0,s1,s2,s3,s4);
+  pmnshow(smat,guihand,edmulti,contbut,quitbut);
+  <span class="keyword">if</span> StopDemo==1, close <span class="string">all</span>, <span class="keyword">break</span>; <span class="keyword">end</span>
+
+
+  <span class="comment">% &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;  SCREEN 6  &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>
+  s0=<span class="string">'6'</span>;
+  s1=<span class="string">'This result is typical for networks having too many'</span>;
+  s2=<span class="string">'weights. The superflous weights will capture'</span>;
+  s3=<span class="string">'some of the noise on the training set, leading to'</span>;
+  s4=<span class="string">'a poor generalization ability. This phenomenon is'</span>;
+  s5=<span class="string">'usually referred to as ''overfitting'''</span>;
+  s6=[];
+  s7=<span class="string">'Let''s try to train with a small weight decay (0.02)'</span>;
+  s8=<span class="string">'and see what happens.'</span>;
+  smat=str2mat(s0,s1,s2,s3,s4,s5,s6,s7,s8);
+  pmnshow(smat,guihand,edmulti,contbut,quitbut);
+  <span class="keyword">if</span> StopDemo==1, close <span class="string">all</span>, <span class="keyword">break</span>; <span class="keyword">end</span>
+
+
+  <span class="comment">% &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;  SCREEN 7  &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>
+  <span class="comment">% ----- Train network -----</span>
+  s0=<span class="string">'7'</span>;
+  s1=[];
+  s2=<span class="string">'    &gt;&gt; Training process in action!! &lt;&lt;'</span>;
+  s3=[];
+  s4=[];
+  s5=<span class="string">'We run up to 500 iterations so you may have to'</span>;
+  s6=<span class="string">'wait for a while!'</span>;
+  smat=str2mat(s0,s1,s2,s3,s4,s5,s6);
+  set(edmulti,<span class="string">'String'</span>,smat);
+  drawnow
+  trparms = settrain(trparms,<span class="string">'D'</span>,0.02);
+  [W1,W2,NSSEvec,iter,lambda2]=marq(NetDef,W1,W2,PHI1,Y1,trparms);
+  delete(gca);
+  subplot(<span class="string">'position'</span>,[0.1 0.55 0.45 0.38]);
+  semilogy(NSSEvec);
+  xlabel(<span class="string">'Iteration'</span>);
+  ylabel(<span class="string">'Criterion of fit'</span>);
+  grid
+
+
+  <span class="comment">% &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;  SCREEN 8  &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>
+  [Yhat,E,NSSE_tr2] = nneval(NetDef,W1,W2,PHI1,Y1,1);
+  [Yhat,E,NSSE_te2] = nneval(NetDef,W1,W2,PHI2,Y2,1);
+<span class="comment">%  FPE2 = fpe(NetDef,W1,W2,PHI,Y,trparms);</span>
+  trparms2 = settrain(trparms,<span class="string">'maxiter'</span>,0);
+<span class="comment">%  ELOO2= loo(NetDef,W1,W2,PHI,Y,trparms2);</span>
+  s0=<span class="string">'8'</span>;
+  s1=<span class="string">'                     No regularization     Regularization'</span>;
+  s2=[<span class="string">'Training error:   '</span> num2str(NSSE_tr) <span class="string">'               '</span> num2str(NSSE_tr2)  ];
+  s3=[<span class="string">'Test Error:         '</span> num2str(NSSE_te) <span class="string">'              '</span> num2str(NSSE_te2)];
+<span class="comment">%  s4=['FPE estimate:   ' num2str(FPE) '                ' num2str(FPE2)];</span>
+<span class="comment">%  s5=['LOO estimate:   ' num2str(ELOO) '                ' num2str(ELOO2)];</span>
+  s6=[];
+  s7=<span class="string">'It looks as if the weight decay actually improved'</span>;
+  s8=<span class="string">'generalization.'</span>;
+  smat=str2mat(s0,s1,s2,s3,s4,s5,s6,s7,s8);
+  pmnshow(smat,guihand,edmulti,contbut,quitbut);
+  <span class="keyword">if</span> StopDemo==1, close <span class="string">all</span>, <span class="keyword">break</span>; <span class="keyword">end</span>
+
+
+  <span class="comment">% &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;  SCREEN 9  &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>
+  s0=<span class="string">'9'</span>;
+  s1=<span class="string">'To really proof the effect of regularization, we'</span>;
+  s2=<span class="string">'redo the experiment for 50 different values of the'</span>;
+  s3=<span class="string">'weight decay parameter. Also we train the network'</span>;
+  s4=<span class="string">'7 times for each weight decay, using different initial'</span>;
+  s5=<span class="string">'weights in order to reduce the influence from local'</span>;
+  s6=<span class="string">'minima.'</span>;
+  smat=str2mat(s0,s1,s2,s3,s4,s5,s6);
+  pmnshow(smat,guihand,edmulti,contbut,quitbut);
+  <span class="keyword">if</span> StopDemo==1, close <span class="string">all</span>, <span class="keyword">break</span>; <span class="keyword">end</span>
+
+
+<span class="comment">%   % &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;  SCREEN 10  &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>
+<span class="comment">%   s0='10';</span>
+<span class="comment">%   s1='Well OK I think we cheat by simply loading the';</span>
+<span class="comment">%   s2='results from a data file.';</span>
+<span class="comment">%   smat=str2mat(s0,s1,s2);</span>
+<span class="comment">%   load test6mat</span>
+<span class="comment">%   semilogx(D_vec,data1,'x',D_vec,data2,'o')</span>
+<span class="comment">%   hold on;plot([0.0339 0.0339],[0.015 0.045],'r--');hold off</span>
+<span class="comment">%   xlabel('Weight decay parameter')</span>
+<span class="comment">%   ylabel('Normalized SSE')</span>
+<span class="comment">%   title('x = training data,       o = test data')</span>
+<span class="comment">%   set(gca,'Ylim',[0.015 0.0339]);</span>
+<span class="comment">%   set(gca,'Xlim',[1e-6 1]);</span>
+<span class="comment">%   pmnshow(smat,guihand,edmulti,contbut,quitbut);</span>
+<span class="comment">%   if StopDemo==1, close all, break; end</span>
+<span class="comment">%</span>
+
+  <span class="comment">% &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;  SCREEN 11  &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>
+  s0=<span class="string">'11'</span>;
+  s1=<span class="string">'Two important remarks can be made from this'</span>;
+  s2=<span class="string">'experiment:'</span>;
+  s25=[];
+  s3=<span class="string">'1) When training an overparametrized network on'</span>;
+  s4=<span class="string">'    noisy data, regularization improves generalization.'</span>;
+  s5=<span class="string">'2) Regularization has a smoothing effect on the'</span>;
+  s6=<span class="string">'    criterion. This significantly reduces the number of'</span>;
+  s7=<span class="string">'    local minima.'</span>;
+  smat=str2mat(s0,s1,s2,s25,s3,s4,s5,s6,s7);
+  set(edmulti,<span class="string">'String'</span>,smat);
+  drawnow
+  TestatingData=PHI2;
+  save(<span class="string">'TestatingData.mat'</span>,<span class="string">'TestatingData'</span>);
+
+  save(<span class="string">'modelEvaluation.mat'</span>,<span class="string">'NetDef'</span>,<span class="string">'PHI1'</span>,<span class="string">'PHI2'</span>,<span class="string">'W1'</span>,<span class="string">'W2'</span>,<span class="string">'Y1'</span>,<span class="string">'Y2'</span>);
+
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">Network training started at 15.55.24
+
+iteration # 1   W = 1.299e-01iteration # 2   W = 1.083e-01iteration # 3   W = 7.999e-02iteration # 4   W = 7.843e-02iteration # 5   W = 7.691e-02iteration # 6   W = 7.345e-02iteration # 7   W = 7.134e-02iteration # 8   W = 7.091e-02iteration # 9   W = 7.023e-02iteration # 10   W = 6.910e-02iteration # 11   W = 6.721e-02iteration # 12   W = 6.655e-02iteration # 13   W = 6.411e-02iteration # 14   W = 6.117e-02iteration # 15   W = 6.010e-02iteration # 16   W = 5.781e-02iteration # 17   W = 5.674e-02iteration # 18   W = 5.461e-02iteration # 19   W = 5.390e-02iteration # 20   W = 5.168e-02iteration # 21   W = 5.156e-02iteration # 22   W = 4.896e-02iteration # 23   W = 4.854e-02iteration # 24   W = 4.711e-02iteration # 25   W = 4.588e-02iteration # 26   W = 4.540e-02iteration # 27   W = 4.494e-02iteration # 28   W = 4.451e-02iteration # 29   W = 4.414e-02iteration # 30   W = 4.362e-02iteration # 31   W = 4.310e-02iteration # 32   W = 4.247e-02iteration # 33   W = 4.177e-02iteration # 34   W = 4.163e-02iteration # 35   W = 4.085e-02iteration # 36   W = 4.052e-02iteration # 37   W = 4.005e-02iteration # 38   W = 3.924e-02iteration # 39   W = 3.799e-02iteration # 40   W = 3.769e-02iteration # 41   W = 3.677e-02iteration # 42   W = 3.655e-02iteration # 43   W = 3.581e-02iteration # 44   W = 3.540e-02iteration # 45   W = 3.494e-02iteration # 46   W = 3.459e-02iteration # 47   W = 3.422e-02iteration # 48   W = 3.358e-02iteration # 49   W = 3.330e-02iteration # 50   W = 3.289e-02iteration # 51   W = 3.148e-02iteration # 52   W = 3.027e-02iteration # 53   W = 2.973e-02iteration # 54   W = 2.963e-02iteration # 55   W = 2.855e-02iteration # 56   W = 2.841e-02iteration # 57   W = 2.735e-02iteration # 58   W = 2.664e-02iteration # 59   W = 2.606e-02iteration # 60   W = 2.354e-02iteration # 61   W = 2.208e-02iteration # 62   W = 2.086e-02iteration # 63   W = 1.902e-02iteration # 64   W = 1.599e-02iteration # 65   W = 1.543e-02iteration # 66   W = 1.455e-02iteration # 67   W = 1.407e-02iteration # 68   W = 1.331e-02iteration # 69   W = 1.247e-02iteration # 70   W = 1.175e-02iteration # 71   W = 1.054e-02iteration # 72   W = 9.722e-03iteration # 73   W = 8.884e-03iteration # 74   W = 7.164e-03iteration # 75   W = 7.011e-03iteration # 76   W = 5.378e-03iteration # 77   W = 4.325e-03iteration # 78   W = 3.766e-03iteration # 79   W = 2.991e-03iteration # 80   W = 2.508e-03iteration # 81   W = 2.111e-03iteration # 82   W = 1.500e-03iteration # 83   W = 1.384e-03iteration # 84   W = 8.381e-04iteration # 85   W = 7.462e-04iteration # 86   W = 5.103e-04iteration # 87   W = 3.239e-04iteration # 88   W = 3.128e-04iteration # 89   W = 1.115e-04iteration # 90   W = 8.105e-05iteration # 91   W = 3.657e-05iteration # 92   W = 2.115e-05iteration # 93   W = 4.436e-06iteration # 94   W = 9.556e-07iteration # 95   W = 6.676e-08iteration # 96   W = 1.663e-09iteration # 97   W = 1.377e-11iteration # 98   W = 3.713e-14
+
+Network training ended at 15.55.25
+Network training started at 15.55.31
+
+iteration # 1   W = 5.784e-01iteration # 2   W = 5.372e-01iteration # 3   W = 4.688e-01iteration # 4   W = 3.833e-01iteration # 5   W = 3.615e-01iteration # 6   W = 1.995e-01iteration # 7   W = 1.448e-01iteration # 8   W = 1.103e-01iteration # 9   W = 8.436e-02iteration # 10   W = 7.784e-02iteration # 11   W = 7.176e-02iteration # 12   W = 6.828e-02iteration # 13   W = 6.777e-02iteration # 14   W = 6.735e-02iteration # 15   W = 6.703e-02iteration # 16   W = 6.647e-02iteration # 17   W = 6.550e-02iteration # 18   W = 6.416e-02iteration # 19   W = 6.284e-02iteration # 20   W = 6.150e-02iteration # 21   W = 6.098e-02iteration # 22   W = 6.049e-02iteration # 23   W = 6.041e-02iteration # 24   W = 6.018e-02iteration # 25   W = 5.995e-02iteration # 26   W = 5.962e-02iteration # 27   W = 5.947e-02iteration # 28   W = 5.925e-02iteration # 29   W = 5.920e-02iteration # 30   W = 5.901e-02iteration # 31   W = 5.896e-02iteration # 32   W = 5.881e-02iteration # 33   W = 5.876e-02iteration # 34   W = 5.866e-02iteration # 35   W = 5.861e-02iteration # 36   W = 5.854e-02iteration # 37   W = 5.850e-02iteration # 38   W = 5.840e-02iteration # 39   W = 5.837e-02iteration # 40   W = 5.835e-02iteration # 41   W = 5.832e-02iteration # 42   W = 5.827e-02iteration # 43   W = 5.823e-02iteration # 44   W = 5.817e-02iteration # 45   W = 5.817e-02iteration # 46   W = 5.814e-02iteration # 47   W = 5.814e-02iteration # 48   W = 5.812e-02iteration # 49   W = 5.812e-02iteration # 50   W = 5.811e-02iteration # 51   W = 5.810e-02iteration # 52   W = 5.810e-02iteration # 53   W = 5.808e-02iteration # 54   W = 5.808e-02iteration # 55   W = 5.806e-02iteration # 56   W = 5.806e-02iteration # 57   W = 5.806e-02iteration # 58   W = 5.805e-02iteration # 59   W = 5.805e-02iteration # 60   W = 5.805e-02iteration # 61   W = 5.804e-02iteration # 62   W = 5.804e-02iteration # 63   W = 5.804e-02iteration # 64   W = 5.804e-02iteration # 65   W = 5.803e-02iteration # 66   W = 5.803e-02iteration # 67   W = 5.803e-02iteration # 68   W = 5.803e-02iteration # 69   W = 5.802e-02iteration # 70   W = 5.802e-02iteration # 71   W = 5.802e-02iteration # 72   W = 5.801e-02iteration # 73   W = 5.801e-02iteration # 74   W = 5.801e-02iteration # 75   W = 5.800e-02iteration # 76   W = 5.800e-02iteration # 77   W = 5.800e-02iteration # 78   W = 5.800e-02iteration # 79   W = 5.800e-02iteration # 80   W = 5.799e-02iteration # 81   W = 5.799e-02iteration # 82   W = 5.799e-02iteration # 83   W = 5.799e-02iteration # 84   W = 5.799e-02iteration # 85   W = 5.799e-02iteration # 86   W = 5.799e-02iteration # 87   W = 5.799e-02iteration # 88   W = 5.799e-02iteration # 89   W = 5.799e-02iteration # 90   W = 5.798e-02iteration # 91   W = 5.798e-02iteration # 92   W = 5.798e-02iteration # 93   W = 5.798e-02iteration # 94   W = 5.798e-02iteration # 95   W = 5.798e-02iteration # 96   W = 5.798e-02iteration # 97   W = 5.798e-02iteration # 98   W = 5.798e-02iteration # 99   W = 5.798e-02iteration # 100   W = 5.798e-02iteration # 101   W = 5.798e-02iteration # 102   W = 5.798e-02iteration # 103   W = 5.798e-02iteration # 104   W = 5.798e-02iteration # 105   W = 5.798e-02iteration # 106   W = 5.798e-02iteration # 107   W = 5.798e-02iteration # 108   W = 5.798e-02iteration # 109   W = 5.798e-02iteration # 110   W = 5.798e-02iteration # 111   W = 5.798e-02iteration # 112   W = 5.798e-02iteration # 113   W = 5.798e-02iteration # 114   W = 5.798e-02iteration # 115   W = 5.798e-02iteration # 116   W = 5.798e-02iteration # 117   W = 5.798e-02iteration # 118   W = 5.798e-02iteration # 119   W = 5.798e-02iteration # 120   W = 5.798e-02iteration # 121   W = 5.798e-02iteration # 122   W = 5.798e-02iteration # 123   W = 5.798e-02iteration # 124   W = 5.798e-02iteration # 125   W = 5.798e-02iteration # 126   W = 5.798e-02iteration # 127   W = 5.798e-02iteration # 128   W = 5.798e-02iteration # 129   W = 5.798e-02iteration # 130   W = 5.798e-02iteration # 131   W = 5.798e-02iteration # 132   W = 5.798e-02iteration # 133   W = 5.798e-02iteration # 134   W = 5.798e-02iteration # 135   W = 5.798e-02iteration # 136   W = 5.798e-02iteration # 137   W = 5.798e-02iteration # 138   W = 5.798e-02iteration # 139   W = 5.798e-02iteration # 140   W = 5.798e-02iteration # 141   W = 5.798e-02iteration # 142   W = 5.798e-02iteration # 143   W = 5.798e-02iteration # 144   W = 5.798e-02
+
+Network training ended at 15.55.34
+</pre><img vspace="5" hspace="5" src="SpamSaveModelProg_01.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% DEMONSTRATION PROGRAM FOR ILLUSTRATING THE EFFECT OF REGULARIZATION
+%
+% Written by Magnus Norgaard, IAU/IMM, Technical Univ. of Denmark
+% LastEditDate: Jan. 15, 2000.
+
+close all
+StopDemo=0;
+figure
+guihand=gcf;
+for k=1:1, %dummy loop
+
+  % >>>>>>>>>>>>>>>>  BUILD GUI INTERFACE  <<<<<<<<<<<<<<<<<
+  [guihand,edmulti,contbut,quitbut]=pmnshow;
+  set(guihand,'Name','Demonstration of regularization');
+
+  % >>>>>>>>>>>>>>>>  SCREEN 1  <<<<<<<<<<<<<<<<<
+  s0='1';
+  s1='In this demo it is shown how regularization by simple';
+  s2='weight decay might be of help when dealing with';
+  s3='overparametrization in neural networks.';
+  s4=[];
+  s5='The problem, which will be the subject of our';
+  s6='investigation, is to use a neural network for fitting';
+  s7='the underlying sine wave from the points marked';
+  s8='''training data.''';
+  smat=str2mat(s0,s1,s2,s3,s4,s5,s6,s7,s8);
+
+  % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH Generate Data REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+  
+%load('dataSetofSpam.mat')
+load('dataSetofSpam.mat');
+
+PHI1=trainData;
+Y1=trainlabel;
+PHI2=testData;
+
+Y2=testlabel;
+
+PHI1=PHI1';
+PHI2=PHI2';
+Y1=Y1';
+Y2=Y2';
+  %REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- Plot Data REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+  sub1=subplot('position',[0.1 0.55 0.38 0.38]);
+  plot(PHI1,Y1,'+');
+  set(gca,'Xlim',[min(PHI1(:)) max(PHI1(:))]);
+  title('Training data');
+  sub2=subplot('position',[0.57 0.55 0.38 0.38]);
+  plot(PHI2,Y2,'m+')
+  set(gca,'Xlim',[min(PHI2(:)) max(PHI2(:))]);
+  title('Test data');
+  drawnow
+  
+%  pmnshow(smat,guihand,edmulti,contbut,quitbut);
+  if StopDemo==1, close all, break; end
+  
+  
+  % >>>>>>>>>>>>>>>>  SCREEN 2  <<<<<<<<<<<<<<<<<
+  s0='2';
+  s1='Let''s begin by training a network with 15';
+  s2='hidden ''tanh'' units and one linear output unit';
+  s3='without using regularization.';
+  smat=str2mat(s0,s1,s2,s3);
+  NetDef = ['HHHHHHHHHHHHHHHHHHHH'       
+            'LREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-'];
+  W1  = rand(20,45);             % Weights to hidden layer 
+  W2  = rand(1,21);             % Weights to output
+  delete(sub1);
+  delete(sub2);
+  sub1=subplot('position',[0.1 0.55 0.45 0.38]);
+  %drawnet(W1,W2,eps,{'x'},{'y'});
+  pmnshow(smat,guihand,edmulti,contbut,quitbut);
+  if StopDemo==1, close all, break; end
+  
+  
+  % >>>>>>>>>>>>>>>>  SCREEN 3  <<<<<<<<<<<<<<<<<
+  % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- Train network REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+  s0='3';
+  s1=[];
+  s2='    >> Training process in action!! <<';
+  s3=[];
+  s4=[];
+  s5='We run up to 500 iterations so you may have to';
+  s6='wait for a while!';
+  smat=str2mat(s0,s1,s2,s3,s4,s5,s6);
+  set(edmulti,'String',smat);
+  drawnow
+  trparms = settrain;
+  trparms = settrain(trparms,'maxiter',500);
+  [W1,W2,NSSEvec,iter,lambda2]=marq(NetDef,W1,W2,PHI1,Y1,trparms);
+  delete(gca);
+  subplot('position',[0.1 0.55 0.45 0.38]);
+  semilogy(NSSEvec);
+  xlabel('Iteration');
+  ylabel('Criterion of fit');
+  grid
+  
+  
+  % >>>>>>>>>>>>>>>>  SCREEN 4  <<<<<<<<<<<<<<<<<
+  s0='4';
+  s1='Next we compute training error, test error,';
+  s2='FPE estimate, and LOO estimate to get an idea';
+  s3='of how well the network fits the curve.';
+  smat=str2mat(s0,s1,s2,s3);
+  pmnshow(smat,guihand,edmulti,contbut,quitbut);
+  if StopDemo==1, close all, break; end
+
+
+  % >>>>>>>>>>>>>>>>  SCREEN 5  <<<<<<<<<<<<<<<<<
+  [Yhat,E,NSSE_tr] = nneval(NetDef,W1,W2,PHI1,Y1,1);
+  [Yhat,E,NSSE_te] = nneval(NetDef,W1,W2,PHI2,Y2,1);
+  FPE = fpe(NetDef,W1,W2,PHI1,Y1,trparms);
+  trparms2 = settrain(trparms,'maxiter',0);
+  ELOO= loo(NetDef,W1,W2,PHI1,Y1,trparms2);
+  s0='5';
+  s1=['Training error:   ' num2str(NSSE_tr)];
+  s2=['Test Error:         ' num2str(NSSE_te)];
+  s3=['FPE estimate:   ' num2str(FPE)];
+  s4=['LOO estimate:   ' num2str(ELOO)];
+  smat=str2mat(s0,s1,s2,s3,s4);
+  pmnshow(smat,guihand,edmulti,contbut,quitbut);
+  if StopDemo==1, close all, break; end
+  
+  
+  % >>>>>>>>>>>>>>>>  SCREEN 6  <<<<<<<<<<<<<<<<<
+  s0='6';
+  s1='This result is typical for networks having too many';
+  s2='weights. The superflous weights will capture';
+  s3='some of the noise on the training set, leading to';
+  s4='a poor generalization ability. This phenomenon is';
+  s5='usually referred to as ''overfitting''';
+  s6=[];
+  s7='Let''s try to train with a small weight decay (0.02)';
+  s8='and see what happens.';
+  smat=str2mat(s0,s1,s2,s3,s4,s5,s6,s7,s8);
+  pmnshow(smat,guihand,edmulti,contbut,quitbut);
+  if StopDemo==1, close all, break; end 
+  
+  
+  % >>>>>>>>>>>>>>>>  SCREEN 7  <<<<<<<<<<<<<<<<<
+  % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- Train network REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+  s0='7';
+  s1=[];
+  s2='    >> Training process in action!! <<';
+  s3=[];
+  s4=[];
+  s5='We run up to 500 iterations so you may have to';
+  s6='wait for a while!';
+  smat=str2mat(s0,s1,s2,s3,s4,s5,s6);
+  set(edmulti,'String',smat);
+  drawnow
+  trparms = settrain(trparms,'D',0.02);
+  [W1,W2,NSSEvec,iter,lambda2]=marq(NetDef,W1,W2,PHI1,Y1,trparms);
+  delete(gca);
+  subplot('position',[0.1 0.55 0.45 0.38]);
+  semilogy(NSSEvec);
+  xlabel('Iteration');
+  ylabel('Criterion of fit');
+  grid
+  
+  
+  % >>>>>>>>>>>>>>>>  SCREEN 8  <<<<<<<<<<<<<<<<<
+  [Yhat,E,NSSE_tr2] = nneval(NetDef,W1,W2,PHI1,Y1,1);
+  [Yhat,E,NSSE_te2] = nneval(NetDef,W1,W2,PHI2,Y2,1);
+%  FPE2 = fpe(NetDef,W1,W2,PHI,Y,trparms);
+  trparms2 = settrain(trparms,'maxiter',0);
+%  ELOO2= loo(NetDef,W1,W2,PHI,Y,trparms2);
+  s0='8';
+  s1='                     No regularization     Regularization';
+  s2=['Training error:   ' num2str(NSSE_tr) '               ' num2str(NSSE_tr2)  ];
+  s3=['Test Error:         ' num2str(NSSE_te) '              ' num2str(NSSE_te2)];
+%  s4=['FPE estimate:   ' num2str(FPE) '                ' num2str(FPE2)];
+%  s5=['LOO estimate:   ' num2str(ELOO) '                ' num2str(ELOO2)];
+  s6=[];
+  s7='It looks as if the weight decay actually improved';
+  s8='generalization.';
+  smat=str2mat(s0,s1,s2,s3,s4,s5,s6,s7,s8);
+  pmnshow(smat,guihand,edmulti,contbut,quitbut);
+  if StopDemo==1, close all, break; end 
+  
+
+  % >>>>>>>>>>>>>>>>  SCREEN 9  <<<<<<<<<<<<<<<<<
+  s0='9';
+  s1='To really proof the effect of regularization, we';
+  s2='redo the experiment for 50 different values of the';
+  s3='weight decay parameter. Also we train the network';
+  s4='7 times for each weight decay, using different initial';
+  s5='weights in order to reduce the influence from local';
+  s6='minima.';
+  smat=str2mat(s0,s1,s2,s3,s4,s5,s6);
+  pmnshow(smat,guihand,edmulti,contbut,quitbut);
+  if StopDemo==1, close all, break; end 
+
+
+%   % >>>>>>>>>>>>>>>>  SCREEN 10  <<<<<<<<<<<<<<<<<
+%   s0='10';
+%   s1='Well OK I think we cheat by simply loading the';
+%   s2='results from a data file.';
+%   smat=str2mat(s0,s1,s2);
+%   load test6mat
+%   semilogx(D_vec,data1,'x',D_vec,data2,'o')
+%   hold on;plot([0.0339 0.0339],[0.015 0.045],'rREPLACE_WITH_DASH_DASH');hold off
+%   xlabel('Weight decay parameter')
+%   ylabel('Normalized SSE')
+%   title('x = training data,       o = test data')
+%   set(gca,'Ylim',[0.015 0.0339]);
+%   set(gca,'Xlim',[1e-6 1]);
+%   pmnshow(smat,guihand,edmulti,contbut,quitbut);
+%   if StopDemo==1, close all, break; end
+%   
+  
+  % >>>>>>>>>>>>>>>>  SCREEN 11  <<<<<<<<<<<<<<<<<
+  s0='11';
+  s1='Two important remarks can be made from this';
+  s2='experiment:';
+  s25=[];
+  s3='1) When training an overparametrized network on';
+  s4='    noisy data, regularization improves generalization.';
+  s5='2) Regularization has a smoothing effect on the';
+  s6='    criterion. This significantly reduces the number of';
+  s7='    local minima.';
+  smat=str2mat(s0,s1,s2,s25,s3,s4,s5,s6,s7);
+  set(edmulti,'String',smat);
+  drawnow
+  TestatingData=PHI2;
+  save('TestatingData.mat','TestatingData');
+
+  save('modelEvaluation.mat','NetDef','PHI1','PHI2','W1','W2','Y1','Y2');
+  
+end
+
+##### SOURCE END #####
+--></body></html>

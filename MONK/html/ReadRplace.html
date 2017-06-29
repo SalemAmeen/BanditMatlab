@@ -1,0 +1,240 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>ReadRplace</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-07-01"><meta name="DC.source" content="ReadRplace.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Import data from text file.</a></li><li><a href="#2">Initialize variables.</a></li><li><a href="#3">Read columns of data as strings:</a></li><li><a href="#4">Open the text file.</a></li><li><a href="#5">Read columns of data according to format string.</a></li><li><a href="#6">Close the text file.</a></li><li><a href="#7">Convert the contents of columns containing numeric strings to numbers.</a></li><li><a href="#8">Create output variable</a></li><li><a href="#9">Clear temporary variables</a></li><li><a href="#10">Normalize the data</a></li><li><a href="#11">Divide the data to training and testing</a></li></ul></div><h2>Import data from text file.<a name="1"></a></h2><p>Script for importing data from the following text file:</p><pre>  C:\Users\lza028.ISDADS\Documents\BanditMatlab\MONK\MONK.txt</pre><p>To extend the code to different selected data or a different text file, generate a function instead of a script.</p><pre class="codeinput"><span class="comment">% Auto-generated by MATLAB on 2016/07/01 17:39:12</span>
+</pre><h2>Initialize variables.<a name="2"></a></h2><pre class="codeinput">filename = <span class="string">'C:\Users\lza028.ISDADS\Documents\BanditMatlab\MONK\MONK.txt'</span>;
+</pre><h2>Read columns of data as strings:<a name="3"></a></h2><p>For more information, see the TEXTSCAN documentation.</p><pre class="codeinput">formatSpec = <span class="string">'%2s%2s%2s%2s%2s%2s%2s%s%[^\n\r]'</span>;
+</pre><h2>Open the text file.<a name="4"></a></h2><pre class="codeinput">fileID = fopen(filename,<span class="string">'r'</span>);
+</pre><h2>Read columns of data according to format string.<a name="5"></a></h2><p>This call is based on the structure of the file used to generate this code. If an error occurs for a different file, try regenerating the code from the Import Tool.</p><pre class="codeinput">dataArray = textscan(fileID, formatSpec, <span class="string">'Delimiter'</span>, <span class="string">''</span>, <span class="string">'WhiteSpace'</span>, <span class="string">''</span>,  <span class="string">'ReturnOnError'</span>, false);
+</pre><h2>Close the text file.<a name="6"></a></h2><pre class="codeinput">fclose(fileID);
+</pre><h2>Convert the contents of columns containing numeric strings to numbers.<a name="7"></a></h2><p>Replace non-numeric strings with NaN.</p><pre class="codeinput">raw = repmat({<span class="string">''</span>},length(dataArray{1}),length(dataArray)-1);
+<span class="keyword">for</span> col=1:length(dataArray)-1
+    raw(1:length(dataArray{col}),col) = dataArray{col};
+<span class="keyword">end</span>
+numericData = NaN(size(dataArray{1},1),size(dataArray,2));
+
+<span class="keyword">for</span> col=[1,2,3,4,5,6,7,8]
+    <span class="comment">% Converts strings in the input cell array to numbers. Replaced non-numeric</span>
+    <span class="comment">% strings with NaN.</span>
+    rawData = dataArray{col};
+    <span class="keyword">for</span> row=1:size(rawData, 1);
+        <span class="comment">% Create a regular expression to detect and remove non-numeric prefixes and</span>
+        <span class="comment">% suffixes.</span>
+        regexstr = <span class="string">'(?&lt;prefix&gt;.*?)(?&lt;numbers&gt;([-]*(\d+[\,]*)+[\.]{0,1}\d*[eEdD]{0,1}[-+]*\d*[i]{0,1})|([-]*(\d+[\,]*)*[\.]{1,1}\d+[eEdD]{0,1}[-+]*\d*[i]{0,1}))(?&lt;suffix&gt;.*)'</span>;
+        <span class="keyword">try</span>
+            result = regexp(rawData{row}, regexstr, <span class="string">'names'</span>);
+            numbers = result.numbers;
+
+            <span class="comment">% Detected commas in non-thousand locations.</span>
+            invalidThousandsSeparator = false;
+            <span class="keyword">if</span> any(numbers==<span class="string">','</span>);
+                thousandsRegExp = <span class="string">'^\d+?(\,\d{3})*\.{0,1}\d*$'</span>;
+                <span class="keyword">if</span> isempty(regexp(numbers, thousandsRegExp, <span class="string">'once'</span>));
+                    numbers = NaN;
+                    invalidThousandsSeparator = true;
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            <span class="comment">% Convert numeric strings to numbers.</span>
+            <span class="keyword">if</span> ~invalidThousandsSeparator;
+                numbers = textscan(strrep(numbers, <span class="string">','</span>, <span class="string">''</span>), <span class="string">'%f'</span>);
+                numericData(row, col) = numbers{1};
+                raw{row, col} = numbers{1};
+            <span class="keyword">end</span>
+        <span class="keyword">catch</span> me
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><pre class="codeoutput error">Function 'subsindex' is not defined for values of class 'cell'.
+
+Error in ReadRplace (line 36)
+numericData = NaN(size(dataArray{1},1),size(dataArray,2));
+</pre><h2>Create output variable<a name="8"></a></h2><pre class="codeinput">MONK = cell2mat(raw);
+</pre><h2>Clear temporary variables<a name="9"></a></h2><pre class="codeinput">clearvars <span class="string">filename</span> <span class="string">formatSpec</span> <span class="string">fileID</span> <span class="string">dataArray</span> <span class="string">ans</span> <span class="string">raw</span> <span class="string">col</span> <span class="string">numericData</span> <span class="string">rawData</span> <span class="string">row</span> <span class="string">regexstr</span> <span class="string">result</span> <span class="string">numbers</span> <span class="string">invalidThousandsSeparator</span> <span class="string">thousandsRegExp</span> <span class="string">me</span>;
+
+
+fulldata=MONK;
+[row,col]=size(fulldata);
+<span class="comment">% Create an random index into your matrices</span>
+idx = randperm(row);
+<span class="comment">% Shuffle both matrices by the same index, preserving the relationship</span>
+fulldata = fulldata(idx,:);
+<span class="comment">% read the data</span>
+DataRaw=fulldata(:,2:8);
+</pre><h2>Normalize the data<a name="10"></a></h2><pre class="codeinput">Dataw = bsxfun(@rdivide,DataRaw,sum(DataRaw));
+Data=normc(DataRaw);
+label=fulldata(:,1);
+</pre><h2>Divide the data to training and testing<a name="11"></a></h2><pre class="codeinput">trainData=Data(1:1600,:) ;
+testData=Data(1600:1711,:);
+trainlabel=label(1:1600,:) ;
+testlabel=label(1600:1711,:);
+<span class="comment">%load('tr');</span>
+<span class="comment">%trparms=tr;</span>
+y2=testlabel;
+save(<span class="string">'dataSetofSpam.mat'</span>);
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Import data from text file.
+% Script for importing data from the following text file:
+%
+%    C:\Users\lza028.ISDADS\Documents\BanditMatlab\MONK\MONK.txt
+%
+% To extend the code to different selected data or a different text file,
+% generate a function instead of a script.
+
+% Auto-generated by MATLAB on 2016/07/01 17:39:12
+
+%% Initialize variables.
+filename = 'C:\Users\lza028.ISDADS\Documents\BanditMatlab\MONK\MONK.txt';
+
+%% Read columns of data as strings:
+% For more information, see the TEXTSCAN documentation.
+formatSpec = '%2s%2s%2s%2s%2s%2s%2s%s%[^\n\r]';
+
+%% Open the text file.
+fileID = fopen(filename,'r');
+
+%% Read columns of data according to format string.
+% This call is based on the structure of the file used to generate this
+% code. If an error occurs for a different file, try regenerating the code
+% from the Import Tool.
+dataArray = textscan(fileID, formatSpec, 'Delimiter', '', 'WhiteSpace', '',  'ReturnOnError', false);
+
+%% Close the text file.
+fclose(fileID);
+
+%% Convert the contents of columns containing numeric strings to numbers.
+% Replace non-numeric strings with NaN.
+raw = repmat({''},length(dataArray{1}),length(dataArray)-1);
+for col=1:length(dataArray)-1
+    raw(1:length(dataArray{col}),col) = dataArray{col};
+end
+numericData = NaN(size(dataArray{1},1),size(dataArray,2));
+
+for col=[1,2,3,4,5,6,7,8]
+    % Converts strings in the input cell array to numbers. Replaced non-numeric
+    % strings with NaN.
+    rawData = dataArray{col};
+    for row=1:size(rawData, 1);
+        % Create a regular expression to detect and remove non-numeric prefixes and
+        % suffixes.
+        regexstr = '(?<prefix>.*?)(?<numbers>([-]*(\d+[\,]*)+[\.]{0,1}\d*[eEdD]{0,1}[-+]*\d*[i]{0,1})|([-]*(\d+[\,]*)*[\.]{1,1}\d+[eEdD]{0,1}[-+]*\d*[i]{0,1}))(?<suffix>.*)';
+        try
+            result = regexp(rawData{row}, regexstr, 'names');
+            numbers = result.numbers;
+            
+            % Detected commas in non-thousand locations.
+            invalidThousandsSeparator = false;
+            if any(numbers==',');
+                thousandsRegExp = '^\d+?(\,\d{3})*\.{0,1}\d*$';
+                if isempty(regexp(numbers, thousandsRegExp, 'once'));
+                    numbers = NaN;
+                    invalidThousandsSeparator = true;
+                end
+            end
+            % Convert numeric strings to numbers.
+            if ~invalidThousandsSeparator;
+                numbers = textscan(strrep(numbers, ',', ''), '%f');
+                numericData(row, col) = numbers{1};
+                raw{row, col} = numbers{1};
+            end
+        catch me
+        end
+    end
+end
+
+
+%% Create output variable
+MONK = cell2mat(raw);
+%% Clear temporary variables
+clearvars filename formatSpec fileID dataArray ans raw col numericData rawData row regexstr result numbers invalidThousandsSeparator thousandsRegExp me;
+
+
+fulldata=MONK;
+[row,col]=size(fulldata);
+% Create an random index into your matrices
+idx = randperm(row);
+% Shuffle both matrices by the same index, preserving the relationship
+fulldata = fulldata(idx,:);
+% read the data
+DataRaw=fulldata(:,2:8);
+
+%% Normalize the data
+Dataw = bsxfun(@rdivide,DataRaw,sum(DataRaw)); 
+Data=normc(DataRaw);
+label=fulldata(:,1);
+%% Divide the data to training and testing
+trainData=Data(1:1600,:) ;
+testData=Data(1600:1711,:);
+trainlabel=label(1:1600,:) ;
+testlabel=label(1600:1711,:);
+%load('tr');
+%trparms=tr;
+y2=testlabel;
+save('dataSetofSpam.mat');
+##### SOURCE END #####
+--></body></html>

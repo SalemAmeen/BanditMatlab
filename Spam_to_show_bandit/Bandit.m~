@@ -1,0 +1,182 @@
+% call all function
+clear all;
+
+clc;
+close all;
+%load('Accobdprune.mat');
+%load('Accobsprune.mat');
+
+
+load('AccuracyOfOBS_OBD.mat');
+Accobdprune=AccOBD;
+Accobsprune= AccOBS;
+
+
+
+% call Decay epsilon
+size=500;
+
+%% Load OBS accuracy
+chk=length(Accobsprune)
+if chk>size
+Accobsprune=Accobsprune(1:size);
+xs=[1:size];
+else
+xs=[1:length(Accobsprune)];
+end
+%% Load OBD accuracy
+chk=length(Accobdprune)
+if chk>size
+Accobdprune=Accobdprune(1:size);
+xd=[1:size];
+else
+xd=[1:length(Accobdprune)];
+end
+
+
+%% Run Random
+ARN=RN();
+chk=length(ARN)
+if chk>size
+ARN=ARN(1:size);
+x0=[1:size];
+else
+x0=[1:length(ARN)];
+end
+
+
+%% Run Decay Epsilon Greedy
+[AEG,AccRWDEG]=EG();
+
+chk=length(AEG)
+if chk>size
+AEG=AEG(1:size);
+x1=[1:size];
+else
+x1=[1:length(AEG)];
+end
+
+%% Run Decay SoftMax
+
+[ASM,AccRWDSM]=SM();
+chk=length(ASM)
+if chk>size
+ASM=ASM(1:size);
+x2=[1:size];
+else
+x2=[1:length(ASM)];
+end
+
+%% Run Win-stay Shift-Left
+
+[AWS,AccRWDWS]=WS();
+chk=length(AWS)
+if chk>size
+AWS=AWS(1:size);
+x3=[1:size];
+else
+x3=[1:length(AWS)];
+end
+
+%% Run UCB1
+AUCBDraw=UCBDraw();
+chk=length(AUCBDraw)
+if chk>size
+AUCBDraw=AUCBDraw(1:size);
+x4=[1:size];
+else
+x4=[1:length(AUCBDraw)];
+end
+%% Run Thompson Sampling 
+
+ATSDrawing=TSDrawing();
+%x2=[1:length(ATSDrawing)];
+chk=length(ATSDrawing)
+if chk>size
+ATSDrawing=ATSDrawing(1:size);
+x5=[1:size];
+else
+x5=[1:length(ATSDrawing)];
+end
+%% Run Bayseian UCB
+ABYSUCB=BYSUCB();
+chk=length(ABYSUCB)
+if chk>size
+ABYSUCB=ABYSUCB(1:size);
+x6=[1:size];
+else
+x6=[1:length(ABYSUCB)];
+end
+%% Run KL-UCB
+
+AKLSUCB=KLSUCB();
+chk=length(AKLSUCB)
+if chk>size
+AKLSUCB=AKLSUCB(1:size);
+x7=[1:size];
+else
+x7=[1:length(AKLSUCB)];
+end
+
+%%
+
+
+%plot(x0,ARN,x1,AEG,x2,ASM,x3,AWS,x4,AUCBDraw,x5,ATSDrawing);
+
+
+%%
+%plot(x0,ARN,'DisplayName','Random');
+
+%plot(x1,AEG,'DisplayName','Epsilon Greedy');
+
+%plot(x2,ASM,'DisplayName','SoftMax');
+%plot(x3,AWS,'DisplayName','Win Stay');
+plot(x4,AUCBDraw,'DisplayName','UCB1');
+hold on
+plot(x7,AKLSUCB,'DisplayName','KL-UCB');
+
+plot(x6,ABYSUCB,'DisplayName','Bayesian UCB');
+
+plot(x5,ATSDrawing,'DisplayName','Thompson Sampling');
+plot(xs,Accobsprune,'DisplayName','OBS');
+plot(xd,Accobdprune,'DisplayName','OBD');
+
+
+hold off
+%%
+grid on;
+grid minor;
+title('Different Multi Armed Bandit techniques');
+xlabel('Number of Removed Weights');
+ylabel('Test Error');
+legend('show');
+
+figure;
+%%
+%plot(x0,ARN,'DisplayName','Random');
+
+%plot(x1,AEG,'DisplayName','Epsilon Greedy');
+
+%plot(x2,ASM,'DisplayName','SoftMax');
+%plot(x3,AWS,'DisplayName','Win Stay');
+plot(x4,AUCBDraw,'DisplayName','UCB1');
+hold on
+plot(x7,AKLSUCB,'DisplayName','KL-UCB');
+
+plot(x6,ABYSUCB,'DisplayName','Bayesian UCB');
+
+plot(x5,ATSDrawing,'DisplayName','Thompson Sampling');
+plot(xs,Accobsprune,'DisplayName','OBS');
+plot(xd,Accobdprune,'DisplayName','OBD');
+
+
+hold off
+%%
+grid on;
+grid minor;
+title('Different Multi Armed Bandit techniques');
+xlabel('Number of Removed Weights');
+ylabel('Test Error');
+legend('show');
+%%
+save('DrawAllData');

@@ -1,0 +1,547 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Bandit</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-07-12"><meta name="DC.source" content="Bandit.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Compute the accuracy of the model</a></li><li><a href="#3">Load OBS accuracy</a></li><li><a href="#4">Load OBD accuracy</a></li><li><a href="#5">Run Random</a></li><li><a href="#6">Run Decay Epsilon Greedy</a></li><li><a href="#7">Run Win-stay Shift-Left</a></li><li><a href="#8">Run UCB1</a></li><li><a href="#9">Run Thompson Sampling</a></li><li><a href="#10">Run Bayseian UCB</a></li><li><a href="#11">Run KL-UCB</a></li><li><a href="#12">Run Rmove weight under threshold 0.1 x i (i =1 to the maximun)</a></li><li><a href="#14">plot the running time for each algorithm</a></li><li><a href="#15">Plot the best models</a></li></ul></div><pre class="codeinput"><span class="comment">% call all function</span>
+clear <span class="string">all</span>;
+clc;
+close <span class="string">all</span>;
+</pre><h2>Compute the accuracy of the model<a name="2"></a></h2><pre class="codeinput">load(<span class="string">'modelEvaluation.mat'</span>);
+[Yhat,E,NSSE_te2] = nneval(NetDef,W1,W2,PHI2,Y2,1);
+  fprintf(<span class="string">'Test Error : %d\n'</span>,NSSE_te2);
+  [row,col] = size(W1);
+  sizeDim = row * (col - 1);
+  sizee= sizeDim * 0.60;
+  vecAcc = ones(sizee,1) * NSSE_te2;
+  AccM = vecAcc';
+load(<span class="string">'AccuracyOfOBS_OBD.mat'</span>);
+</pre><pre class="codeoutput">Test Error : 8.499605e-02
+</pre><h2>Load OBS accuracy<a name="3"></a></h2><pre class="codeinput">chk=length(Accobsprune)
+<span class="keyword">if</span> chk&gt;sizee
+Accobsprune=Accobsprune(1:sizee);
+xs=[1:sizee];
+<span class="keyword">else</span>
+xs=[1:length(Accobsprune)];
+<span class="keyword">end</span>
+timeruning(1)=obstime;
+</pre><pre class="codeoutput">
+chk =
+
+    81
+
+</pre><h2>Load OBD accuracy<a name="4"></a></h2><pre class="codeinput">chk=length(Accobdprune)
+<span class="keyword">if</span> chk&gt;sizee
+Accobdprune=Accobdprune(1:sizee);
+xd=[1:sizee];
+<span class="keyword">else</span>
+xd=[1:length(Accobdprune)];
+<span class="keyword">end</span>
+timeruning(2)=obdtime;
+</pre><pre class="codeoutput">
+chk =
+
+   100
+
+</pre><h2>Run Random<a name="5"></a></h2><pre class="codeinput"> ARN=RN(sizeDim);
+chk=length(ARN)
+<span class="keyword">if</span> chk&gt;sizee
+ARN=ARN(1:sizee);
+x0=[1:sizee];
+<span class="keyword">else</span>
+x0=[1:length(ARN)];
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">Test Error : 8.499605e-02
+
+chk =
+
+    60
+
+</pre><h2>Run Decay Epsilon Greedy<a name="6"></a></h2><pre class="codeinput">[AEG,AccRWDEG, egtime]=EG();
+
+chk=length(AEG)
+<span class="keyword">if</span> chk&gt;sizee
+AEG=AEG(1:sizee);
+x1=[1:sizee];
+<span class="keyword">else</span>
+x1=[1:length(AEG)];
+<span class="keyword">end</span>
+timeruning(3)=egtime;
+
+<span class="comment">% %% Run Decay SoftMax</span>
+<span class="comment">%</span>
+<span class="comment">% [ASM,AccRWDSM]=SM();</span>
+<span class="comment">% chk=length(ASM)</span>
+<span class="comment">% if chk&gt;size</span>
+<span class="comment">% ASM=ASM(1:size);</span>
+<span class="comment">% x2=[1:size];</span>
+<span class="comment">% else</span>
+<span class="comment">% x2=[1:length(ASM)];</span>
+<span class="comment">% end</span>
+</pre><pre class="codeoutput">Test Error : 8.499605e-02
+
+egtime =
+
+    1.4120
+
+
+chk =
+
+    79
+
+</pre><h2>Run Win-stay Shift-Left<a name="7"></a></h2><pre class="codeinput">[AWS,AccRWDWS, WStime]=WS();
+chk=length(AWS)
+<span class="keyword">if</span> chk&gt;sizee
+AWS=AWS(1:sizee);
+x3=[1:sizee];
+<span class="keyword">else</span>
+x3=[1:length(AWS)];
+<span class="keyword">end</span>
+timeruning(4)=WStime;
+</pre><pre class="codeoutput">Test Error : 8.499605e-02
+
+WStime =
+
+    0.8523
+
+
+chk =
+
+    60
+
+</pre><h2>Run UCB1<a name="8"></a></h2><pre class="codeinput">[AUCBDraw,AccRWDUCB1, UCB1Stime]=UCBDraw();
+chk=length(AUCBDraw)
+<span class="keyword">if</span> chk&gt;sizee
+AUCBDraw=AUCBDraw(1:sizee);
+x4=[1:sizee];
+<span class="keyword">else</span>
+x4=[1:length(AUCBDraw)];
+<span class="keyword">end</span>
+timeruning(5)=UCB1Stime;
+</pre><pre class="codeoutput">Test Error : 8.499605e-02
+
+UCB1Stime =
+
+    0.7042
+
+
+chk =
+
+    79
+
+</pre><h2>Run Thompson Sampling<a name="9"></a></h2><pre class="codeinput">[ATSDrawing,AccRWDTS, TStime]=TSDrawing();
+<span class="comment">%x2=[1:length(ATSDrawing)];</span>
+chk=length(ATSDrawing)
+<span class="keyword">if</span> chk&gt;sizee
+ATSDrawing=ATSDrawing(1:sizee);
+x5=[1:sizee];
+<span class="keyword">else</span>
+x5=[1:length(ATSDrawing)];
+<span class="keyword">end</span>
+timeruning(6)=TStime;
+</pre><pre class="codeoutput">
+TStime =
+
+    0.9808
+
+
+chk =
+
+    79
+
+</pre><h2>Run Bayseian UCB<a name="10"></a></h2><pre class="codeinput">[ABYSUCB,AccRWDBYSUCB, BUCBtime]=BYSUCB();
+chk=length(ABYSUCB)
+<span class="keyword">if</span> chk&gt;sizee
+ABYSUCB=ABYSUCB(1:sizee);
+x6=[1:sizee];
+<span class="keyword">else</span>
+x6=[1:length(ABYSUCB)];
+<span class="keyword">end</span>
+timeruning(7)=BUCBtime;
+</pre><pre class="codeoutput">Test Error : 8.499605e-02
+
+BUCBtime =
+
+    3.5729
+
+
+chk =
+
+    79
+
+</pre><h2>Run KL-UCB<a name="11"></a></h2><pre class="codeinput">[AKLSUCB,AccRWDKLSUCB, KLUCBtime]=KLSUCB();
+chk=length(AKLSUCB)
+<span class="keyword">if</span> chk&gt;sizee
+AKLSUCB=AKLSUCB(1:sizee);
+x7=[1:sizee];
+<span class="keyword">else</span>
+x7=[1:length(AKLSUCB)];
+<span class="keyword">end</span>
+
+timeruning(8)=KLUCBtime;
+</pre><pre class="codeoutput">Test Error : 8.499605e-02
+
+KLUCBtime =
+
+    2.9994
+
+
+chk =
+
+    79
+
+</pre><h2>Run Rmove weight under threshold 0.1 x i (i =1 to the maximun)<a name="12"></a></h2><pre class="codeinput">[AccThreshold, Thresholdtime]=Threshold();
+
+v = length(AccThreshold)
+
+<span class="keyword">if</span> v&gt;sizee
+AccThreshold=AccThreshold(1:sizee);
+x8=[1:sizee];
+<span class="keyword">else</span>
+x8=[1:length(AccThreshold)];
+<span class="keyword">end</span>
+[AEG(1),ARN(1),AWS(1),AUCBDraw(1),AKLSUCB(1),ABYSUCB(1),ATSDrawing(1),AccThreshold(1),Accobsprune(1),Accobdprune(1)]=deal(AccM(1));
+<span class="comment">%timeruning(9)=Thresholdtime;</span>
+</pre><pre class="codeoutput">Test Error : 8.499605e-02
+
+Ttime =
+
+    0.0160
+
+
+v =
+
+   100
+
+</pre><pre class="codeinput">figure;
+plot(x1/sizeDim*100,AEG,<span class="string">'DisplayName'</span>,<span class="string">'Epsilon Greedy'</span>);
+hold <span class="string">on</span>
+
+plot(x0/sizeDim*100,AccM,<span class="string">'DisplayName'</span>,<span class="string">'Accu'</span>);
+plot(x0/sizeDim*100,ARN,<span class="string">'DisplayName'</span>,<span class="string">'Random'</span>);
+<span class="comment">% plot(x2/sizeDim*100,ASM,'DisplayName','SoftMax');</span>
+plot(x3/sizeDim*100,AWS,<span class="string">'DisplayName'</span>,<span class="string">'Win Stay'</span>);
+plot(x4/sizeDim*100,(AUCBDraw),<span class="string">'DisplayName'</span>,<span class="string">'UCB1'</span>);
+<span class="comment">%hold on</span>
+plot(x7/sizeDim*100,(AKLSUCB),<span class="string">'DisplayName'</span>,<span class="string">'KL-UCB'</span>);
+plot(x6/sizeDim*100,(ABYSUCB),<span class="string">'DisplayName'</span>,<span class="string">'Bayesian UCB'</span>);
+plot(x5/sizeDim*100,ATSDrawing,<span class="string">'DisplayName'</span>,<span class="string">'Thompson Sampling'</span>);
+plot(x8/sizeDim*100,AccThreshold,<span class="string">'DisplayName'</span>,<span class="string">'Set Threshold'</span>);
+plot(xs/sizeDim*100,Accobsprune,<span class="string">'DisplayName'</span>,<span class="string">'OBS'</span>);
+plot(xd/sizeDim*100,Accobdprune,<span class="string">'DisplayName'</span>,<span class="string">'OBD'</span>);
+hold <span class="string">off</span>
+grid <span class="string">on</span>;
+grid <span class="string">minor</span>;
+title(<span class="string">'Different Multi Armed Bandit techniques, OBS and OBD'</span>);
+yt = get(gca, <span class="string">'xtick'</span>);
+ytl = strcat(strtrim(cellstr(num2str(yt'))), <span class="string">'%'</span>);
+set(gca, <span class="string">'xticklabel'</span>, ytl);
+
+xlabel(<span class="string">'Percentage of Removed Weights'</span>);
+ylim([0 25])
+ylabel(<span class="string">'Test Error'</span>);
+legend(<span class="string">'show'</span>);
+</pre><img vspace="5" hspace="5" src="Bandit_01.png" alt=""> <h2>plot the running time for each algorithm<a name="14"></a></h2><pre class="codeinput">figure;
+bar(timeruning)
+set(gca,<span class="string">'xtick'</span>,1:8,<span class="string">'xticklabel'</span>,{<span class="string">'OBS'</span>,<span class="string">'OBD'</span>,<span class="string">'EG'</span>,<span class="string">'WS'</span>,<span class="string">'UCB1'</span>,<span class="string">'TS'</span>,<span class="string">'BUCB'</span>,<span class="string">'KLUCB'</span>, <span class="string">'Threshold'</span>})
+grid <span class="string">on</span>;
+grid <span class="string">minor</span>;
+title(<span class="string">'Time of running different pruning algorithms'</span>);
+xlabel(<span class="string">'Name of the Algorithm'</span>);
+ylabel(<span class="string">'Runing time in second'</span>);
+</pre><img vspace="5" hspace="5" src="Bandit_02.png" alt=""> <h2>Plot the best models<a name="15"></a></h2><pre class="codeinput">figure;
+<span class="comment">%plot(x1/sizeDim*100,AEG,'DisplayName','Epsilon Greedy');</span>
+<span class="comment">%plot(x0/sizeDim*100,ARN,'DisplayName','Random');</span>
+<span class="comment">% plot(x2/sizeDim*100,ASM,'DisplayName','SoftMax');</span>
+<span class="comment">%plot(x3/sizeDim*100,AWS,'DisplayName','Win Stay');</span>
+plot(x4/sizeDim*100,(AUCBDraw),<span class="string">'DisplayName'</span>,<span class="string">'UCB1'</span>);
+hold <span class="string">on</span>
+plot(x0/sizeDim*100,AccM,<span class="string">'b--o'</span>, <span class="string">'DisplayName'</span>,<span class="string">'Accu'</span>);
+<span class="comment">%plot(x7/sizeDim*100,(AKLSUCB),'DisplayName','KL-UCB');</span>
+<span class="comment">%plot(x6/sizeDim*100,(ABYSUCB),'DisplayName','Bayesian UCB');</span>
+plot(x5/sizeDim*100,ATSDrawing, <span class="string">'DisplayName'</span>,<span class="string">'Thompson Sampling'</span>);
+plot(xs/sizeDim*100,Accobsprune, <span class="string">'DisplayName'</span>,<span class="string">'OBS'</span>);
+plot(xd/sizeDim*100,Accobdprune,  <span class="string">'DisplayName'</span>,<span class="string">'OBD'</span>);
+hold <span class="string">off</span>
+grid <span class="string">on</span>;
+grid <span class="string">minor</span>;
+title(<span class="string">'Different Multi Armed Bandit techniques, OBS and OBD'</span>);
+yt = get(gca, <span class="string">'xtick'</span>);
+ytl = strcat(strtrim(cellstr(num2str(yt'))), <span class="string">'%'</span>);
+set(gca, <span class="string">'xticklabel'</span>, ytl);
+xlabel(<span class="string">'Percentage of Removed Weights'</span>);
+ylabel(<span class="string">'Test Error'</span>);
+legend(<span class="string">'show'</span>);
+save(<span class="string">'DrawAllData'</span>);
+</pre><img vspace="5" hspace="5" src="Bandit_03.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% call all function
+clear all;
+clc;
+close all;
+%% Compute the accuracy of the model
+load('modelEvaluation.mat');  
+[Yhat,E,NSSE_te2] = nneval(NetDef,W1,W2,PHI2,Y2,1);
+  fprintf('Test Error : %d\n',NSSE_te2);
+  [row,col] = size(W1);
+  sizeDim = row * (col - 1);
+  sizee= sizeDim * 0.60;
+  vecAcc = ones(sizee,1) * NSSE_te2;
+  AccM = vecAcc'; 
+load('AccuracyOfOBS_OBD.mat');
+%% Load OBS accuracy
+chk=length(Accobsprune)
+if chk>sizee
+Accobsprune=Accobsprune(1:sizee);
+xs=[1:sizee];
+else
+xs=[1:length(Accobsprune)];
+end
+timeruning(1)=obstime;
+
+%% Load OBD accuracy
+chk=length(Accobdprune)
+if chk>sizee
+Accobdprune=Accobdprune(1:sizee);
+xd=[1:sizee];
+else
+xd=[1:length(Accobdprune)];
+end
+timeruning(2)=obdtime;
+
+%% Run Random
+ ARN=RN(sizeDim);
+chk=length(ARN)
+if chk>sizee
+ARN=ARN(1:sizee);
+x0=[1:sizee];
+else
+x0=[1:length(ARN)];
+end
+
+
+%% Run Decay Epsilon Greedy
+[AEG,AccRWDEG, egtime]=EG();
+
+chk=length(AEG)
+if chk>sizee
+AEG=AEG(1:sizee);
+x1=[1:sizee];
+else
+x1=[1:length(AEG)];
+end
+timeruning(3)=egtime;
+
+% %% Run Decay SoftMax
+% 
+% [ASM,AccRWDSM]=SM();
+% chk=length(ASM)
+% if chk>size
+% ASM=ASM(1:size);
+% x2=[1:size];
+% else
+% x2=[1:length(ASM)];
+% end
+
+%% Run Win-stay Shift-Left
+
+[AWS,AccRWDWS, WStime]=WS();
+chk=length(AWS)
+if chk>sizee
+AWS=AWS(1:sizee);
+x3=[1:sizee];
+else
+x3=[1:length(AWS)];
+end
+timeruning(4)=WStime;
+
+%% Run UCB1
+[AUCBDraw,AccRWDUCB1, UCB1Stime]=UCBDraw();
+chk=length(AUCBDraw)
+if chk>sizee
+AUCBDraw=AUCBDraw(1:sizee);
+x4=[1:sizee];
+else
+x4=[1:length(AUCBDraw)];
+end
+timeruning(5)=UCB1Stime;
+
+%% Run Thompson Sampling 
+
+[ATSDrawing,AccRWDTS, TStime]=TSDrawing();
+%x2=[1:length(ATSDrawing)];
+chk=length(ATSDrawing)
+if chk>sizee
+ATSDrawing=ATSDrawing(1:sizee);
+x5=[1:sizee];
+else
+x5=[1:length(ATSDrawing)];
+end
+timeruning(6)=TStime;
+
+%% Run Bayseian UCB
+[ABYSUCB,AccRWDBYSUCB, BUCBtime]=BYSUCB();
+chk=length(ABYSUCB)
+if chk>sizee
+ABYSUCB=ABYSUCB(1:sizee);
+x6=[1:sizee];
+else
+x6=[1:length(ABYSUCB)];
+end
+timeruning(7)=BUCBtime;
+
+%% Run KL-UCB
+
+[AKLSUCB,AccRWDKLSUCB, KLUCBtime]=KLSUCB();
+chk=length(AKLSUCB)
+if chk>sizee
+AKLSUCB=AKLSUCB(1:sizee);
+x7=[1:sizee];
+else
+x7=[1:length(AKLSUCB)];
+end
+
+timeruning(8)=KLUCBtime;
+%% Run Rmove weight under threshold 0.1 x i (i =1 to the maximun)
+
+[AccThreshold, Thresholdtime]=Threshold();
+
+v = length(AccThreshold)
+
+if v>sizee
+AccThreshold=AccThreshold(1:sizee);
+x8=[1:sizee];
+else
+x8=[1:length(AccThreshold)];
+end
+[AEG(1),ARN(1),AWS(1),AUCBDraw(1),AKLSUCB(1),ABYSUCB(1),ATSDrawing(1),AccThreshold(1),Accobsprune(1),Accobdprune(1)]=deal(AccM(1));
+%timeruning(9)=Thresholdtime;
+%%
+figure;
+plot(x1/sizeDim*100,AEG,'DisplayName','Epsilon Greedy');
+hold on
+
+plot(x0/sizeDim*100,AccM,'DisplayName','Accu');
+plot(x0/sizeDim*100,ARN,'DisplayName','Random');
+% plot(x2/sizeDim*100,ASM,'DisplayName','SoftMax');
+plot(x3/sizeDim*100,AWS,'DisplayName','Win Stay');
+plot(x4/sizeDim*100,(AUCBDraw),'DisplayName','UCB1');
+%hold on
+plot(x7/sizeDim*100,(AKLSUCB),'DisplayName','KL-UCB');
+plot(x6/sizeDim*100,(ABYSUCB),'DisplayName','Bayesian UCB');
+plot(x5/sizeDim*100,ATSDrawing,'DisplayName','Thompson Sampling');
+plot(x8/sizeDim*100,AccThreshold,'DisplayName','Set Threshold');
+plot(xs/sizeDim*100,Accobsprune,'DisplayName','OBS');
+plot(xd/sizeDim*100,Accobdprune,'DisplayName','OBD');
+hold off
+grid on;
+grid minor;
+title('Different Multi Armed Bandit techniques, OBS and OBD');
+yt = get(gca, 'xtick');
+ytl = strcat(strtrim(cellstr(num2str(yt'))), '%');
+set(gca, 'xticklabel', ytl);
+
+xlabel('Percentage of Removed Weights');
+ylim([0 25])
+ylabel('Test Error');
+legend('show');
+
+%% plot the running time for each algorithm
+figure;
+bar(timeruning)
+set(gca,'xtick',1:8,'xticklabel',{'OBS','OBD','EG','WS','UCB1','TS','BUCB','KLUCB', 'Threshold'})
+grid on;
+grid minor;
+title('Time of running different pruning algorithms');
+xlabel('Name of the Algorithm');
+ylabel('Runing time in second');
+%% Plot the best models
+figure;
+%plot(x1/sizeDim*100,AEG,'DisplayName','Epsilon Greedy');
+%plot(x0/sizeDim*100,ARN,'DisplayName','Random');
+% plot(x2/sizeDim*100,ASM,'DisplayName','SoftMax');
+%plot(x3/sizeDim*100,AWS,'DisplayName','Win Stay');
+plot(x4/sizeDim*100,(AUCBDraw),'DisplayName','UCB1');
+hold on
+plot(x0/sizeDim*100,AccM,'bREPLACE_WITH_DASH_DASHo', 'DisplayName','Accu');
+%plot(x7/sizeDim*100,(AKLSUCB),'DisplayName','KL-UCB');
+%plot(x6/sizeDim*100,(ABYSUCB),'DisplayName','Bayesian UCB');
+plot(x5/sizeDim*100,ATSDrawing, 'DisplayName','Thompson Sampling');
+plot(xs/sizeDim*100,Accobsprune, 'DisplayName','OBS');
+plot(xd/sizeDim*100,Accobdprune,  'DisplayName','OBD');
+hold off
+grid on;
+grid minor;
+title('Different Multi Armed Bandit techniques, OBS and OBD');
+yt = get(gca, 'xtick');
+ytl = strcat(strtrim(cellstr(num2str(yt'))), '%');
+set(gca, 'xticklabel', ytl);
+xlabel('Percentage of Removed Weights');
+ylabel('Test Error');
+legend('show');
+save('DrawAllData');
+##### SOURCE END #####
+--></body></html>

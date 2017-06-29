@@ -1,0 +1,60 @@
+
+clear all;
+clc;
+load('NetArtetechure.mat'); 
+
+[r,c]=size(hiddenWeights);
+    SizeOfWeight=r*c;  
+    %SizeOfWeight=10;
+    
+[correctlyClassified, classificationErrors] = validateTwoLayerPerceptron(activationFunction, hiddenWeights, outputWeights, inputValues, labels);
+fprintf('Classification errors Befor pruning: %d\n', classificationErrors);
+fprintf('Correctly classified Befor pruning: %d\n', correctlyClassified);
+
+ %%
+playTimes=1000000;
+Reward=zeros(SizeOfWeight,1); % m is the Reward
+Value=zeros(SizeOfWeight,1); % Value is the total pulled armed
+mean=zeros(SizeOfWeight,1); % mean is the mean of pulled armed
+
+
+
+totalAction=SizeOfWeight;
+
+for j=1:playTimes
+    [idxW]=ThomsonSamoling(Reward,Value);
+    
+    %fprintf('Index = %d\n',idxW)
+    
+    
+    
+    temp=hiddenWeights(idxW);
+    hiddenWeights(idxW)=0;
+    %fprintf('index at max: %d\n',idxW );
+    [correctlyClassifiedThomsonSamoling, classificationErrorsThomsonSamoling] = validateTwoLayerPerceptron(activationFunction, hiddenWeights, outputWeights, inputValues, labels);
+    %fprintf('Classification errors  AFTER ThomsonSamoling pruning: %d\n', classificationErrorsThomsonSamoling);
+%fprintf('Correctly classified AFTER ThomsonSamoling pruning: %d\n', correctlyClassifiedThomsonSamoling);
+
+      delta = classificationErrorsThomsonSamoling - classificationErrors ; 
+      rwd=max(0,50+delta)/50;
+      rwd=rwd/22;
+      %fprintf(' reward = %d\n',rwd);
+      
+     Reward(idxW)=Reward(idxW)+rwd;
+          Value(idxW)=Value(idxW)+1;
+               mean(idxW)=mean(idxW)+1/playTimes;
+
+
+     hiddenWeights(idxW)=temp;
+     
+totalAction= totalAction + 1;
+end
+
+
+plot(Reward);
+%I = find(Reward>0);
+%weights = hiddenWeights ; % buckup the weights
+%hiddenWeights(I)=0;
+%save('classificationErrorsThomsonSamoling_1000','classificationErrorsThomsonSamoling');
+
+
